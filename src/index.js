@@ -5,6 +5,7 @@ const packageJson = require('../package.json');
 const validateCommand = require('./commands/validate');
 const initCommand = require('./commands/init');
 const listCommand = require('./commands/list');
+const showCommand = require('./commands/show');
 
 program
    .name('trun')
@@ -23,9 +24,14 @@ program
    .action(validateCommand);
 
 program
-.command('list')
-.description('List all configured tasks.')
-.action(listCommand);
+   .command('list')
+   .description('List all configured tasks.')
+   .action(listCommand);
+
+program
+   .command('show <task>')
+   .description('Display the configuration of a specific task.')
+   .action(showCommand);
 
    program.parse(process.argv);
 
