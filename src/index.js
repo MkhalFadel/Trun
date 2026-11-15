@@ -6,6 +6,7 @@ const validateCommand = require('./commands/validate');
 const initCommand = require('./commands/init');
 const listCommand = require('./commands/list');
 const showCommand = require('./commands/show');
+const createCommand = require('./commands/create');
 
 program
    .name('trun')
@@ -32,6 +33,11 @@ program
    .command('show <task>')
    .description('Display the configuration of a specific task.')
    .action(showCommand);
+
+program
+   .command('create <task>')
+   .description('Create a new task interactively.')
+   .action(createCommand);
 
    program.parse(process.argv);
 
