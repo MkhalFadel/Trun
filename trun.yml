@@ -1,0 +1,7 @@
+version: 1
+
+settings:
+    maxParallel: 3
+    defaultTimeout: 60000
+
+tasks: {}

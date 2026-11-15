@@ -1,3 +1,12 @@
 #!/usr/bin/env node
 
-console.log('Trun CLI is ready.');
+const { program } = require('commander');
+const packageJson = require('../package.json');
+
+program
+   .name('trun')
+   .description('A developer-focused workflow automation CLI.')
+   .version(packageJson.version, '-v, --version')
+   .showHelpAfterError();
+
+program.parse(process.argv);

@@ -1,5 +1,5 @@
 {
-  "name": "trun",
+  "name": "@mkhalfadel/trun",
   "version": "0.1.0",
   "description": "A developer-focused workflow automation CLI.",
   "main": "src/index.js",
