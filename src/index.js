@@ -7,6 +7,7 @@ const initCommand = require('./commands/init');
 const listCommand = require('./commands/list');
 const showCommand = require('./commands/show');
 const createCommand = require('./commands/create');
+const deleteCommand = require('./commands/delete');
 
 program
    .name('trun')
@@ -38,6 +39,11 @@ program
    .command('create <task>')
    .description('Create a new task interactively.')
    .action(createCommand);
+
+program
+   .command('delete <task>')
+   .description('Delete a configured task.')
+   .action(deleteCommand);
 
    program.parse(process.argv);
 
