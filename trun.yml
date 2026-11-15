@@ -1,7 +1,22 @@
 version: 1
 
 settings:
-    maxParallel: 3
-    defaultTimeout: 60000
+   maxParallel: 3
+   defaultTimeout: 60000
 
-tasks: {}
+tasks:
+   install:
+      command: npm
+      args: ["install"]
+
+   build:
+      command: npm
+      args: ["run", "build"]
+      dependsOn:
+         - install
+
+   test:
+      command: npm
+      args: ["test"]
+      dependsOn:
+         - build

@@ -4,6 +4,7 @@ const { program } = require('commander');
 const packageJson = require('../package.json');
 const validateCommand = require('./commands/validate');
 const initCommand = require('./commands/init');
+const listCommand = require('./commands/list');
 
 program
    .name('trun')
@@ -21,4 +22,10 @@ program
    .description('Validate the Trun configuration file.')
    .action(validateCommand);
 
-program.parse(process.argv);
+program
+.command('list')
+.description('List all configured tasks.')
+.action(listCommand);
+
+   program.parse(process.argv);
+
