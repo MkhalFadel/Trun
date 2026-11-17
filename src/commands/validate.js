@@ -1,5 +1,6 @@
 const { findConfigFile, loadConfigFile } = require('../config/configLoader');
 const { validateConfig } = require('../config/configValidator');
+const { validateDependencies } = require('../core/dependencyValidator');
 
 function validateCommand() {
    try {
@@ -10,7 +11,9 @@ function validateCommand() {
       }
 
       const rawConfig = loadConfigFile(configPath);
-      validateConfig(rawConfig);
+      const config = validateConfig(rawConfig);
+
+      validateDependencies(config.tasks);
 
       console.log('Configuration is valid.');
       console.log(`File: ${configPath}`);
