@@ -1,7 +1,7 @@
 const { resolveDependencies } = require('./dependencyResolver');
 const { runTask } = require('./taskRunner');
 
-async function runWorkflow(tasks) {
+async function runWorkflow(tasks, settings = {}) {
    const executionOrder = resolveDependencies(tasks);
    const results = [];
 
@@ -12,7 +12,7 @@ async function runWorkflow(tasks) {
       console.log(`\nRunning task: ${taskName}`);
 
       try {
-         const result = await runTask(task);
+         const result = await runTask(task, settings.defaultTimeout);
 
          results.push({
             taskName,
@@ -21,6 +21,7 @@ async function runWorkflow(tasks) {
 
          if (!result.success) {
             console.error(`Task "${taskName}" failed.`);
+
             return {
                success: false,
                results,

@@ -1,6 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { runWorkflow } = require('../src/core/workflowRunner');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 test('executes tasks in dependency order', async () => {
    const tasks = {
@@ -92,4 +95,57 @@ test('handles commands that cannot be started', async () => {
    assert.equal(result.results[0].success, false);
    assert.match(result.results[0].error, /Failed to start/);
    assert.deepEqual(result.skipped, ['test']);
+});
+
+test('passes retries through the workflow runner', async t => {
+   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'trun-workflow-'));
+   const marker = path.join(directory, 'attempt');
+
+   t.after(() => {
+      fs.rmSync(directory, { recursive: true, force: true });
+   });
+
+   const tasks = {
+      build: {
+         command: process.execPath,
+         args: [
+            '-e',
+            `
+               const fs = require('fs');
+
+               if (!fs.existsSync(process.env.TRUN_MARKER)) {
+                  fs.writeFileSync(process.env.TRUN_MARKER, 'attempted');
+                  process.exit(1);
+               }
+            `
+         ],
+         env: {
+            TRUN_MARKER: marker
+         },
+         dependsOn: [],
+         retries: 1
+      }
+   };
+
+   const result = await runWorkflow(tasks);
+
+   assert.equal(result.success, true);
+   assert.equal(result.results[0].attempts, 2);
+});
+
+test('passes the default timeout through the workflow runner', async () => {
+   const tasks = {
+      build: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => {}, 1000)'],
+         dependsOn: []
+      }
+   };
+
+   const result = await runWorkflow(tasks, {
+      defaultTimeout: 100
+   });
+
+   assert.equal(result.success, false);
+   assert.equal(result.results[0].timedOut, true);
 });
