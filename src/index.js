@@ -8,6 +8,7 @@ const listCommand = require('./commands/list');
 const showCommand = require('./commands/show');
 const createCommand = require('./commands/create');
 const deleteCommand = require('./commands/delete');
+const runCommand = require('./commands/run');
 
 program
    .name('trun')
@@ -45,5 +46,10 @@ program
    .description('Delete a configured task.')
    .action(deleteCommand);
 
-   program.parse(process.argv);
+   
+program
+.command('run')
+.description('Run all configured tasks.')
+.action(runCommand);
 
+program.parse(process.argv);
