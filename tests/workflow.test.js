@@ -149,3 +149,146 @@ test('passes the default timeout through the workflow runner', async () => {
    assert.equal(result.success, false);
    assert.equal(result.results[0].timedOut, true);
 });
+
+test('runs independent tasks in parallel', async () => {
+   const startTimes = {};
+
+   const tasks = {
+      first: {
+         command: process.execPath,
+         args: [
+            '-e',
+            'setTimeout(() => console.log("first"), 500)'
+         ],
+         dependsOn: []
+      },
+      second: {
+         command: process.execPath,
+         args: [
+            '-e',
+            'setTimeout(() => console.log("second"), 500)'
+         ],
+         dependsOn: []
+      }
+   };
+
+   const startTime = Date.now();
+
+   const result = await runWorkflow(tasks, {
+      maxParallel: 2,
+      defaultTimeout: 60000
+   });
+
+   const duration = Date.now() - startTime;
+
+   assert.equal(result.success, true);
+   assert.equal(result.results.length, 2);
+   assert.ok(duration < 900);
+});
+
+test('respects the maxParallel setting', async () => {
+   const tasks = {
+      first: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => {}, 300)'],
+         dependsOn: []
+      },
+      second: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => {}, 300)'],
+         dependsOn: []
+      },
+      third: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => {}, 300)'],
+         dependsOn: []
+      }
+   };
+
+   const startTime = Date.now();
+
+   const result = await runWorkflow(tasks, {
+      maxParallel: 2,
+      defaultTimeout: 60000
+   });
+
+   const duration = Date.now() - startTime;
+
+   assert.equal(result.success, true);
+   assert.equal(result.results.length, 3);
+   assert.ok(duration >= 500);
+});
+
+test('allows running tasks to finish after a failure', async () => {
+   const tasks = {
+      first: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => process.exit(1), 100)'],
+         dependsOn: []
+      },
+      second: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => console.log("second finished"), 400)'],
+         dependsOn: []
+      },
+      third: {
+         command: 'echo',
+         args: ['third'],
+         dependsOn: []
+      }
+   };
+
+   const result = await runWorkflow(tasks, {
+      maxParallel: 2,
+      defaultTimeout: 60000
+   });
+
+   assert.equal(result.success, false);
+   assert.equal(result.results.length, 2);
+   assert.ok(result.results.some(task => task.taskName === 'first'));
+   assert.ok(result.results.some(task => task.taskName === 'second'));
+   assert.deepEqual(result.skipped, ['third']);
+});
+
+test('waits for all dependencies before starting a task', async () => {
+   const tasks = {
+      first: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => {}, 300)'],
+         dependsOn: []
+      },
+      second: {
+         command: process.execPath,
+         args: ['-e', 'setTimeout(() => {}, 500)'],
+         dependsOn: []
+      },
+      third: {
+         command: process.execPath,
+         args: ['-e', 'console.log("third started")'],
+         dependsOn: ['first', 'second']
+      }
+   };
+
+   const result = await runWorkflow(tasks, {
+      maxParallel: 2,
+      defaultTimeout: 60000
+   });
+
+   assert.equal(result.success, true);
+   assert.equal(result.results.length, 3);
+
+   const firstIndex = result.results.findIndex(
+      task => task.taskName === 'first'
+   );
+
+   const secondIndex = result.results.findIndex(
+      task => task.taskName === 'second'
+   );
+
+   const thirdIndex = result.results.findIndex(
+      task => task.taskName === 'third'
+   );
+
+   assert.ok(thirdIndex > firstIndex);
+   assert.ok(thirdIndex > secondIndex);
+});
